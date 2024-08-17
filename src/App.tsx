@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from "react";
 import { useWebHook } from "./hooks/webSocketHook";
-import { Button } from "@nextui-org/react";
+import { Button, Spinner } from "@nextui-org/react";
 import Board from "./components/LudoBoard";
 import Dice from "react-dice-roll";
 import { DiceNum, Payload } from "./models/model";
 import toast, { Toaster } from "react-hot-toast";
+import Confetti from 'react-confetti'
 
 export const INIT_GAME = "init_game";
 export const MOVE = "move";
@@ -19,6 +20,7 @@ function App() {
   const [myPos, setMyPos] = useState<number>(0);
   const [opponentPos, setOpponentPos] = useState<number>(0);
   const [myMove, setMyMove] = useState<boolean>(false);
+  const [winner,setWinner] = useState<boolean>(false);
   const diceRef = useRef<any>(null);
 
   const makeMove = () => {
@@ -34,12 +36,14 @@ function App() {
     console.log("current dice", dice);
     setDiceRoll(dice);
     if (diceRef.current) {
-      setTimeout(() => diceRef.current.rollDice(), 500);
+      setTimeout(() => diceRef.current.rollDice(), 200);
     }
   };
   const handleMove = async (paylaod: Payload) => {
+    await rollDie(paylaod.diceRoll);
     if (paylaod.opponent === 100 || paylaod.yourPos === 100) {
       if (paylaod.yourPos === 100) {
+        setWinner(true);
         toast("You Won", {
           duration: 4000,
           position: "top-center",
@@ -53,17 +57,18 @@ function App() {
       }
       setTimeout(
         () =>
+          {setWinner(false);
           socket?.send(
             JSON.stringify({
               type: END,
             })
-          ),
+          )},
         3000
       );
       return;
     }
 
-    await rollDie(paylaod.diceRoll);
+   
     await setTimeout(() => {
       setMyPos(paylaod.yourPos);
       setOpponentPos(paylaod.opponent);
@@ -103,9 +108,15 @@ function App() {
   }
   return (
     <div className="h-screen w-full flex items-center justify-center">
+      {winner && <Confetti/>}
       <Toaster />
       {connected === "REQ" && (
+        <div className=" justify-center items-center text-white gap-8 font-bold text-3xl flex flex-col">
+          <div>Play Snake and Ladder Online on the #1 Site!</div>
         <Button
+          color="success"
+          radius="sm"
+          className=" text-white"
           onClick={() =>
             socket.send(
               JSON.stringify({
@@ -116,17 +127,31 @@ function App() {
         >
           Play Game
         </Button>
+        </div>
       )}
       {connected === "PEN" && (
-        <div>Looking for Players to play game with....</div>
+        <div className=" flex flex-col gap-4 items-center justify-center">
+          <p>Looking for Players to play game with....</p>
+          <Spinner color="success"/>
+          </div>
       )}
       {connected === "CON" && (
         <div className=" flex justify-between w-full px-20 items-center gap-4">
-          <div className=" flex flex-col gap-12">
-            <p>
+          <div className=" flex flex-col gap-12 items-center justify-center">
+            <p className=" text-xl w-[300px] text-center">
               {myMove ? "Its your turn to roll the dice" : "Opponent's turn"}
             </p>
-            <Button disabled={!myMove} onClick={() => makeMove()}>
+            <div className=" flex flex-col gap-4">
+              <div className=" items-center flex gap-4">
+                <p>You-</p>
+                <div className=" w-4 h-4 border border-divider rounded-full bg-red-500"></div>
+              </div>
+              <div className=" flex items-center  gap-4">
+                <p>Opponent-</p>
+                <div className=" w-4 h-4 rounded-full border border-divider bg-black"></div>
+              </div>
+            </div>
+            <Button color={myMove ? "success" : "default"} disabled={!myMove} onClick={() => makeMove()}>
               Click
             </Button>
             <Dice ref={diceRef} disabled size={100} cheatValue={diceRoll} />

@@ -71,15 +71,15 @@ function Board({
       />
       <div style={{
     left: initialMy === 0 ? '-25px' : `${posTOPix(initialMy).x}px`,
-    bottom: `${posTOPix(initialMy).y}px`,
+    bottom: `${posTOPix(initialMy).y}px`,transition: 'left 0.5s ease, bottom 0.5s ease',
   }}
-        className={` z-20 rounded-full h-4 w-4 bg-red-500  absolute transform -translate-x-1/2 translate-y-1/2  `}
+        className={` z-20 rounded-full h-4 w-4 border border-divider bg-red-500  absolute transform -translate-x-1/2 translate-y-1/2  `}
       ></div>
       <div style={{
     left: initialOp === 0 ? '-25px' : `${posTOPix(initialOp).x}px`,
-    bottom: `${posTOPix(initialOp).y}px`,
+    bottom: `${posTOPix(initialOp).y}px`,transition: 'left 0.5s ease, bottom 0.5s ease',
   }}
-        className={` z-10 rounded-full bg-black h-4 w-4 transform -translate-x-1/3 translate-y-1/3 absolute   `}
+        className={` z-10 rounded-full border border-divider bg-black h-4 w-4 transform -translate-x-1/3 translate-y-1/3 absolute   `}
       ></div>
     </div>
   );
