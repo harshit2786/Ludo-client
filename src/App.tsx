@@ -33,7 +33,7 @@ function App() {
     }
   };
   const rollDie = async (dice: DiceNum) => {
-    console.log("current dice", dice);
+   
     setDiceRoll(dice);
     if (diceRef.current) {
       setTimeout(() => diceRef.current.rollDice(), 200);
@@ -41,6 +41,10 @@ function App() {
   };
   const handleMove = async (paylaod: Payload) => {
     await rollDie(paylaod.diceRoll);
+    await setTimeout(() => {
+      setMyPos(paylaod.yourPos);
+      setOpponentPos(paylaod.opponent);
+    }, 1000);
     if (paylaod.opponent === 100 || paylaod.yourPos === 100) {
       if (paylaod.yourPos === 100) {
         setWinner(true);
@@ -69,10 +73,7 @@ function App() {
     }
 
    
-    await setTimeout(() => {
-      setMyPos(paylaod.yourPos);
-      setOpponentPos(paylaod.opponent);
-    }, 1000);
+    
   };
   useEffect(() => {
     if (!socket) {
