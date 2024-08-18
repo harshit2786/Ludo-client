@@ -6,7 +6,8 @@ import Board from "./components/LudoBoard";
 import Dice from "react-dice-roll";
 import { DiceNum, Payload } from "./models/model";
 import toast, { Toaster } from "react-hot-toast";
-import Confetti from 'react-confetti'
+import Confetti from "react-confetti";
+import { useMobileLayout } from "./hooks/MobileLayout";
 
 export const INIT_GAME = "init_game";
 export const MOVE = "move";
@@ -20,9 +21,9 @@ function App() {
   const [myPos, setMyPos] = useState<number>(0);
   const [opponentPos, setOpponentPos] = useState<number>(0);
   const [myMove, setMyMove] = useState<boolean>(false);
-  const [winner,setWinner] = useState<boolean>(false);
+  const [winner, setWinner] = useState<boolean>(false);
   const diceRef = useRef<any>(null);
-
+  const isMobile = useMobileLayout();
   const makeMove = () => {
     if (socket) {
       socket.send(
@@ -33,7 +34,6 @@ function App() {
     }
   };
   const rollDie = async (dice: DiceNum) => {
-   
     setDiceRoll(dice);
     if (diceRef.current) {
       setTimeout(() => diceRef.current.rollDice(), 200);
@@ -47,33 +47,32 @@ function App() {
     }, 1000);
     if (paylaod.opponent === 100 || paylaod.yourPos === 100) {
       if (paylaod.yourPos === 100) {
-        setWinner(true);
-        toast("You Won", {
-          duration: 4000,
-          position: "top-center",
-          icon: "👏",
-        });
+        setTimeout(() => {
+          setWinner(true);
+          toast("You Won", {
+            duration: 4000,
+            position: "top-center",
+            icon: "👏",
+          });
+        }, 1800);
       } else {
-        toast("You Lost", {
-          duration: 4000,
-          position: "top-center",
-        });
+        setTimeout(() => {
+          toast("You Lost", {
+            duration: 4000,
+            position: "top-center",
+          });
+        }, 1800);
       }
-      setTimeout(
-        () =>
-          {setWinner(false);
-          socket?.send(
-            JSON.stringify({
-              type: END,
-            })
-          )},
-        3000
-      );
+      setTimeout(() => {
+        setWinner(false);
+        socket?.send(
+          JSON.stringify({
+            type: END,
+          })
+        );
+      }, 5000);
       return;
     }
-
-   
-    
   };
   useEffect(() => {
     if (!socket) {
@@ -108,36 +107,40 @@ function App() {
     );
   }
   return (
-    <div className="h-screen w-full flex items-center justify-center">
-      {winner && <Confetti/>}
+    <div className="h-screen overflow-y-auto w-full flex items-center justify-center">
+      {winner && <Confetti />}
       <Toaster />
       {connected === "REQ" && (
         <div className=" justify-center items-center text-white gap-8 font-bold text-3xl flex flex-col">
           <div>Play Snake and Ladder Online on the #1 Site!</div>
-        <Button
-          color="success"
-          radius="sm"
-          className=" text-white"
-          onClick={() =>
-            socket.send(
-              JSON.stringify({
-                type: INIT_GAME,
-              })
-            )
-          }
-        >
-          Play Game
-        </Button>
+          <Button
+            color="success"
+            radius="sm"
+            className=" text-white"
+            onClick={() =>
+              socket.send(
+                JSON.stringify({
+                  type: INIT_GAME,
+                })
+              )
+            }
+          >
+            Play Game
+          </Button>
         </div>
       )}
       {connected === "PEN" && (
         <div className=" flex flex-col gap-4 items-center justify-center">
           <p>Looking for Players to play game with....</p>
-          <Spinner color="success"/>
-          </div>
+          <Spinner color="success" />
+        </div>
       )}
       {connected === "CON" && (
-        <div className=" flex justify-between w-full px-20 items-center gap-4">
+        <div
+          className={` flex justify-between w-full px-20 ${
+            isMobile ? " flex-col-reverse" : ""
+          } items-center gap-4`}
+        >
           <div className=" flex flex-col gap-12 items-center justify-center">
             <p className=" text-xl w-[300px] text-center">
               {myMove ? "Its your turn to roll the dice" : "Opponent's turn"}
@@ -152,7 +155,11 @@ function App() {
                 <div className=" w-4 h-4 rounded-full border border-divider bg-black"></div>
               </div>
             </div>
-            <Button color={myMove ? "success" : "default"} disabled={!myMove} onClick={() => makeMove()}>
+            <Button
+              color={myMove ? "success" : "default"}
+              disabled={!myMove}
+              onClick={() => makeMove()}
+            >
               Click
             </Button>
             <Dice ref={diceRef} disabled size={100} cheatValue={diceRoll} />
